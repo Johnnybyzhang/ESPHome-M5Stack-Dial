@@ -1,0 +1,291 @@
+esphome:
+  name: m5-dial
+  on_boot:
+    - switch.turn_on: hold
+    - pcf8563.read_time:
+        id: pcf8563_time
+
+esp32:
+  board: m5stack-stamps3
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "jk+6wMixvKs/s+7v81k/8zickBROznbfX6W2IGGsC0g="
+
+ota:
+  - platform: esphome
+    password: "87012ee6949cd51f211d029ee1194d0daa03adc6ed3fc9448afa92b1dc43cd9f"
+
+wifi:
+  networks:
+  - ssid: "IoT"
+    password: "QAZwsxEDC@123"
+    hidden: True
+  fast_connect: True
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "M5-Dial Fallback Hotspot"
+    password: "lgWcTeRwK3rZ"
+
+captive_portal:
+    
+# Enable Web server
+web_server:
+  port: 80
+
+#######################################################
+# M5Stack M5 Dial Configuration (Hardware Side)
+
+# SPI Stuff
+spi:
+  mosi_pin: GPIO5
+  clk_pin: GPIO6
+# Display configs
+display:
+  - platform: ili9xxx
+    model: gc9a01a
+    id: display_main
+    dc_pin: GPIO4
+    cs_pin: GPIO7
+    reset_pin: GPIO8
+    data_rate: 40MHz
+    invert_colors: True
+    auto_clear_enabled: false
+    update_interval: never
+# Backlight
+output:
+  - platform: ledc
+    pin: GPIO9
+    frequency: "78125Hz" # Reference: ESPHome Official Documentation
+    channel: 0
+    id: backlight_pwm
+  - platform: ledc
+    pin: GPIO3
+    id: buzzer_pwm
+switch:
+  - platform: gpio
+    pin: GPIO46
+    id: hold
+    restore_mode: ALWAYS_ON
+
+light:
+  - platform: monochromatic
+    output: backlight_pwm
+    id: backlight
+    restore_mode: ALWAYS_ON
+
+# I2C Stuff
+i2c:
+  - id: bus_internal
+    sda: GPIO11
+    scl: GPIO12
+    scan: False
+    frequency: 400kHz
+  - id: bus_external
+    sda: GPIO13
+    scl: GPIO15
+    scan: True
+    frequency: 400kHz
+# Touch Screen
+touchscreen:
+  platform: ft5x06
+  i2c_id: bus_internal
+  id: touchscreen_main
+  address: 0x38 # Reference: esphome/feature-requests #2500
+  interrupt_pin: GPIO14 # Reference: M5Stack M5 Dial Schematic
+
+# RTC Clock
+time:
+  - platform: pcf8563
+    i2c_id: bus_internal
+    id: pcf8563_time
+    address: 0x51 # Reference: I2C Scan on M5Stack M5 Dial, Tested
+    update_interval: never
+  - platform: sntp
+    id: sntp_time
+    timezone: "Asia/Shanghai"
+    servers:
+      - "ntp.tuna.tsinghua.edu.cn"
+    update_interval: 1800s
+    on_time_sync:
+      - pcf8563.write_time:
+          id: pcf8563_time
+
+# RFID Reader
+rc522_i2c:
+  address: 0x28
+  i2c_id: bus_internal
+  update_interval: 200ms # Reference: https://github.com/Chill-Division/M5Stack-ESPHome/blob/main/RFID%202%20Unit%20(WS1850S).md
+
+
+sensor:
+  - platform: rotary_encoder # Rotary Encoder
+    pin_a: GPIO40
+    pin_b: GPIO41
+    id: encoder_main
+  - platform: homeassistant
+    id: climate_current_temperature
+    entity_id: climate.tado_smart_radiator_thermostat_va2105674240
+    attribute: current_temperature
+  - platform: homeassistant
+    id: climate_target_temperature
+    entity_id: climate.tado_smart_radiator_thermostat_va2105674240
+    attribute: temperature
+    on_value:
+      - if:
+          condition: 
+            binary_sensor.is_on: need_catchup
+          then:
+            - binary_sensor.template.publish:
+                id: have_update
+                state: true
+            - delay: 50ms
+            - binary_sensor.template.publish:
+                id: have_update
+                state: false
+          else:
+            - lvgl.arc.update:
+                id: arc_thermostat
+                value: !lambda return x*2;
+
+number:
+  - platform: template
+    name: Screen Timeout
+    optimistic: true
+    id: display_timeout
+    unit_of_measurement: "s"
+    initial_value: 30
+    min_value: 10
+    max_value: 1800
+    step: 5
+    mode: box
+
+text_sensor:
+  - platform: homeassistant
+    id: climate_mode
+    entity_id: climate.tado_smart_radiator_thermostat_va2105674240
+    attribute: hvac_mode
+
+
+binary_sensor:
+  - platform: gpio # Button:
+    pin:
+      number: GPIO42
+      inverted: True
+    id: button_main
+  - platform: homeassistant
+    id: climate_idle_state
+    entity_id: binary_sensor.bo_yan_fang_jian_nuan_qi_heating
+  - platform: template
+    id: have_update
+    filters:
+      - settle: 1000ms
+    on_release:
+      - lvgl.arc.update:
+          id: arc_thermostat
+          value: !lambda return (id(climate_target_temperature).state*2);
+      - binary_sensor.template.publish:
+          id: need_catchup
+          state: false
+  - platform: template
+    id: need_catchup
+  - platform: template
+    id: is_off
+    lambda: |-
+      if (id(climate_idle_state).state) {
+        return true;
+      } else {
+        return false;
+      }
+
+
+# LVGL
+lvgl:
+  displays:
+    - display_main
+  touchscreens:
+    - touchscreen_id: touchscreen_main
+  encoders:
+    - enter_button: button_main
+      sensor: encoder_main
+  buffer_size: 25%
+#######################################################
+# M5Stack M5 Dial Configuration (Software Side)
+  pages:
+    - id: thermostat_page
+      widgets:
+        - arc:
+            id: arc_thermostat
+            x: 0
+            y: 0
+            width: 240
+            height: 240
+            adjustable: true
+            arc_rounded: true
+            pad_all: 8
+            bg_opa: TRANSP
+            rotation: 90
+            start_angle: 45
+            end_angle: 315
+            min_value: 10
+            max_value: 50
+            adv_hittest: true
+            on_change: # Knob Actuated
+              - homeassistant.action:
+                  action: climate.set_temperature
+                  data:
+                    entity_id: climate.tado_smart_radiator_thermostat_va2105674240
+                    temperature: !lambda return x/2;
+              - binary_sensor.template.publish:
+                  id: need_catchup
+                  state: true
+            on_value: # Localized Temperature Display
+              - lvgl.label.update:
+                  id: thermostat_set_temperature
+                  text: 
+                    format: "%.1f°C"
+                    args: [x/2]
+            widgets:
+              - label:
+                  id: thermostat_set_temperature
+                  text: "..."
+                  # text: !lambda |-
+                  #   return std::to_string(id(climate_target_temperature).state);
+                  text_font: montserrat_48
+                  align: center
+                  text_color: 0x000000
+              # - arc:
+              #     id: arc_room_temperature
+              #     x: 0
+              #     y: 0
+              #     width: 240
+              #     height: 240
+              #     adjustable: false
+              #     start_angle: 45
+              #     end_angle: 315
+              #     bg_opa: TRANSP
+              #     outline_opa: TRANSP
+              #     arc_opa: TRANSP
+              #     arc_rounded: true
+              #     pad_all: 8
+              #     rotation: 90
+              #     min_value: 50
+              #     max_value: 250
+  on_idle:
+    timeout: !lambda |-
+      return (id(display_timeout).state * 1000);
+    then:
+      - logger.log: "LVGL is idle"
+      - light.turn_off: backlight
+      - lvgl.pause:
+  on_resume:
+    then:
+      - logger.log: "LVGL is resumed"
+      - lvgl.widget.redraw:
+      - light.turn_on: backlight
