@@ -86,7 +86,12 @@ font:
     id: state_label
     size: 20
     bpp: 8
-    glyphs: " 升降温至当前湿度℃°关闭制热冷自动"
+    glyphs: " 升降温至当前湿度℃°关闭制热冷自动/除送风"
+  - file: "Fonts/PingFangSC-Regular.ttf"
+    id: state_label_small
+    size: 16
+    bpp: 8
+    glyphs: " 升降温至当前湿度℃°关闭制热冷自动/除送风"
 
 
 #######################################################
@@ -162,6 +167,7 @@ touchscreen:
   id: touchscreen_main
   address: 0x38 # Reference: esphome/feature-requests #2500
   interrupt_pin: GPIO14 # Reference: M5Stack M5 Dial Schematic
+  touch_timeout: 1s # Prevent stuck on touch
 
 # RTC Clock
 time:
@@ -194,6 +200,9 @@ sensor:
     publish_initial_value: True
     id: encoder_main
     restore_mode: ALWAYS_ZERO
+  - platform: wifi_signal
+    id: wifi_signal_sensor
+    update_interval: 5s
   - platform: homeassistant
     id: climate_current_temperature
     entity_id: climate.tado_smart_radiator_thermostat_va2105674240
@@ -222,9 +231,6 @@ sensor:
             - lvgl.arc.update:
                 id: arc_thermostat
                 value: !lambda return x*2;
-  - platform: wifi_signal
-    id: wifi_signal_sensor
-    update_interval: 5s
 
 number:
   - platform: template
@@ -261,101 +267,16 @@ text_sensor:
     internal: false
     entity_id: climate.tado_smart_radiator_thermostat_va2105674240
     attribute: hvac_modes
-    filters:
-    # The following lambda function extracts the HVAC modes from the raw string, capitalizes them, and joins them into a single string
-      - lambda: |-
-          std::string input = x.c_str(); // The raw input string
-          std::vector<std::string> hvac_modes; // Vector to store the extracted modes
-          auto capitalize = [](std::string &str) {
-            if (!str.empty()) {
-              str[0] = std::toupper(static_cast<unsigned char>(str[0]));
-              for (size_t i = 1; i < str.size(); ++i) {
-                str[i] = std::tolower(static_cast<unsigned char>(str[i]));
-              }
-            }
-          };
-          if (input.size() >= 2 && input.front() == '[' && input.back() == ']') {
-            input = input.substr(1, input.size() - 2);
-          } // Remove the brackets if present
-          size_t pos = 0;
-          while (pos < input.length()) {
-            // Find the start of "<HVACMode."
-            size_t start = input.find("<HVACMode.", pos);
-            if (start == std::string::npos) {
-              break; // No more modes found
-            }
-            start += strlen("<HVACMode."); // Move past "<HVACMode."
-            size_t colon = input.find(":", start); // Find the position of the colon ":" after the mode name
-            if (colon == std::string::npos) {
-              break; // Malformed string
-            }
-            std::string mode = input.substr(start, colon - start); // Extract the mode name
-            capitalize(mode); // Convert to "Off", "Heat", etc.
-            hvac_modes.push_back(mode); // Store the mode
-            pos = input.find(">", colon); // Move the position past the current mode entry
-            if (pos == std::string::npos) {
-              break; // End of string
-            }
-            pos += 1; // Move past ">"
-          }
-          // Join the modes into a single comma-separated string for display
-          if (hvac_modes.empty()) {
-            return std::string("No modes found");
-          } else {
-            std::string joined;
-            for (size_t i = 0; i < hvac_modes.size(); ++i) {
-              if (i > 0) {
-                joined += ", ";
-              }
-              joined += hvac_modes[i];
-            }
-            return joined;
-          }
-
-          // If you need to use the vector `hvac_modes` elsewhere, you can process it here
-          // For example, logging the modes
-          /*
-          for (const auto &mode : hvac_modes) {
-            ESP_LOGD("HVACMode", "Mode: %s", mode.c_str());
-          }
-          return std::string("Modes processed");
-          */
-
-
-binary_sensor:
-  - platform: gpio # Button:
-    pin:
-      number: GPIO42
-      inverted: True
-    id: button_main
+    filters: !include parser.yaml
+    on_value: !include workaround.yaml
   - platform: homeassistant
-    id: climate_idle_state
-    entity_id: binary_sensor.bo_yan_fang_jian_nuan_qi_heating
-  - platform: template
-    id: have_update
-    filters:
-      - settle: 1000ms
-    on_release:
-      - lvgl.arc.update:
-          id: arc_thermostat
-          value: !lambda return (id(climate_target_temperature).state*2);
-      - binary_sensor.template.publish:
-          id: need_catchup
-          state: false
-      - lvgl.widget.focus:
-          id: arc_thermostat
-          freeze: true
-          editing: true
-  - platform: template
-    id: need_catchup
-  - platform: template
-    id: is_off
-    lambda: |-
-      if (id(climate_idle_state).state) {
-        return true;
-      } else {
-        return false;
-      }
+    name: "Current HVAC Mode"
+    id: climate_mode_current
+    internal: false
+    entity_id: climate.tado_smart_radiator_thermostat_va2105674240
+globals: !include globals.yaml
+
+binary_sensor: !include binary_sensor.yaml
 
 
 # LVGL
@@ -371,105 +292,7 @@ lvgl:
   log_level: DEBUG
 #######################################################
 # M5Stack M5 Dial Configuration (Software Side)
-  pages:
-    - id: thermostat_page
-      bg_color: 0xA0A0A0
-      widgets:
-        - arc:
-            id: arc_thermostat
-            x: 0
-            y: 0
-            width: 240
-            height: 240
-            adjustable: true
-            arc_rounded: true
-            arc_color: 0x737373
-            pad_all: 3
-            bg_opa: TRANSP
-            rotation: 90
-            start_angle: 60
-            end_angle: 300
-            min_value: 10
-            max_value: 50
-            adv_hittest: true
-            arc_width: 32
-            indicator:
-              arc_width: 32
-            knob:
-              bg_color: 0xFFFFFF
-              bg_opa: COVER
-              pad_all: -4
-            on_change: # Knob Actuated
-              - homeassistant.action:
-                  action: climate.set_temperature
-                  data:
-                    entity_id: climate.tado_smart_radiator_thermostat_va2105674240
-                    temperature: !lambda return x/2;
-              - binary_sensor.template.publish:
-                  id: need_catchup
-                  state: true
-              - lvgl.widget.focus:
-                  id: arc_thermostat
-                  freeze: true
-                  editing: true
-            on_value: # Localized Temperature Display
-              - lvgl.label.update:
-                  id: thermostat_set_temperature
-                  text: 
-                    format: "%.1f"
-                    args: [x/2]
-              - lvgl.widget.focus:
-                  id: arc_thermostat
-                  freeze: true
-                  editing: true
-            widgets:
-              - label:
-                  id: thermostat_set_temperature
-                  text: "..."
-                  y: -5
-                  # text: !lambda |-
-                  #   return std::to_string(id(climate_target_temperature).state);
-                  text_font: temperature_label
-                  align: center
-                  text_color: 0xFFFFFF
-                  overflow_visible: true
-                  widgets:
-                    - label:
-                        text: " "
-                        text_font: state_label
-                        text_color: 0xDDDDDD
-                        y: -20
-                        align: TOP_MID
-              - arc:
-                  id: arc_room_temperature
-                  x: 0
-                  y: 0
-                  width: 240
-                  height: 240
-                  adjustable: true
-                  clickable: false
-                  click_focusable: false
-                  start_angle: 60
-                  end_angle: 300
-                  align: center
-                  # outline_opa: TRANSP
-                  arc_opa: TRANSP
-                  arc_rounded: true
-                  pad_all: 13
-                  rotation: 90
-                  min_value: 50
-                  max_value: 250
-                  indicator:
-                    arc_opa: TRANSP
-                  knob:
-                    bg_color: 0xE0E0E0
-                    bg_opa: COVER
-                    pad_all: -2
-      on_load:
-        - lvgl.widget.focus:
-            id: arc_thermostat
-            freeze: true
-            editing: true
+  pages: !include pages.yaml
   on_idle:
     timeout: !lambda |-
       return (id(display_timeout).state * 1000);
