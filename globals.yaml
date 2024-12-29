@@ -1,0 +1,25 @@
+# "heat", "cool", "heat_cool", "auto", "dry", and "fan_only"
+- id: heat
+  type: bool
+  initial_value: "false"
+  restore_value: false
+- id: cool
+  type: bool
+  initial_value: "false"
+  restore_value: false
+- id: heat_cool
+  type: bool
+  initial_value: "false"
+  restore_value: false
+- id: Auto
+  type: bool
+  initial_value: "false"
+  restore_value: false
+- id: dry
+  type: bool
+  initial_value: "false"
+  restore_value: false
+- id: fan_only
+  type: bool
+  initial_value: "false"
+  restore_value: false

@@ -1,0 +1,55 @@
+- label:
+    id: thermostat_set_temperature
+    text: "..."
+    y: -5
+    # text: !lambda |-
+    #   return std::to_string(id(climate_target_temperature).state);
+    text_font: temperature_label
+    align: center
+    text_color: 0xFFFFFF
+    overflow_visible: true
+    widgets:
+      - label:
+          text: " "
+          text_font: state_label
+          text_color: 0xDDDDDD
+          y: -20
+          align: TOP_MID
+- arc:
+    id: arc_room_temperature
+    x: 0
+    y: 0
+    width: 240
+    height: 240
+    adjustable: true
+    clickable: false
+    click_focusable: false
+    start_angle: 60
+    end_angle: 300
+    align: center
+    # outline_opa: TRANSP
+    arc_opa: TRANSP
+    arc_rounded: true
+    pad_all: 13
+    rotation: 90
+    min_value: 50
+    max_value: 250
+    indicator:
+      arc_opa: TRANSP
+    knob:
+      bg_color: 0xE0E0E0
+      bg_opa: COVER
+      pad_all: -2
+- roller:
+    id: hvac_mode_roller
+    x: 0
+    y: 70
+    mode: NORMAL
+    align: center
+    visible_row_count: 2
+    width: 70
+    height: 20
+    text_font: state_label_small
+    adv_hittest: true
+    options: 
+      - "关闭"

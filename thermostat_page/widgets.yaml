@@ -1,0 +1,48 @@
+- arc:
+    id: arc_thermostat
+    x: 0
+    y: 0
+    width: 240
+    height: 240
+    adjustable: true
+    arc_rounded: true
+    arc_color: 0x737373
+    pad_all: 3
+    bg_opa: TRANSP
+    rotation: 90
+    start_angle: 60
+    end_angle: 300
+    min_value: 10
+    max_value: 50
+    adv_hittest: true
+    arc_width: 32
+    indicator:
+      arc_width: 32
+    knob:
+      bg_color: 0xFFFFFF
+      bg_opa: COVER
+      pad_all: -4
+    on_change: # Knob Actuated
+      - homeassistant.action:
+          action: climate.set_temperature
+          data:
+            entity_id: climate.tado_smart_radiator_thermostat_va2105674240
+            temperature: !lambda return x/2;
+      - binary_sensor.template.publish:
+          id: need_catchup
+          state: true
+      - lvgl.widget.focus:
+          id: arc_thermostat
+          freeze: true
+          editing: true
+    on_value: # Localized Temperature Display
+      - lvgl.label.update:
+          id: thermostat_set_temperature
+          text: 
+            format: "%.1f"
+            args: [x/2]
+      - lvgl.widget.focus:
+          id: arc_thermostat
+          freeze: true
+          editing: true
+    widgets: !include subwidgets.yaml

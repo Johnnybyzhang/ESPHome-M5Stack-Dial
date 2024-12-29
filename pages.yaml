@@ -1,0 +1,8 @@
+- id: thermostat_page
+  bg_color: 0xA0A0A0
+  widgets: !include ./thermostat_page/widgets.yaml
+  on_load:
+    - lvgl.widget.focus:
+        id: arc_thermostat
+        freeze: true
+        editing: true

@@ -1,0 +1,765 @@
+- if: 
+# This is a very stupid way to update the roller (there is no support for templatable options), but it should work, and it is only ran once every reconnect anyways
+# Update: this way works, it will stuck in this format until I find a better one
+    condition:
+      lambda: return id(heat);
+    then:
+      - if:
+          condition:
+            lambda: return id(cool);
+          then:
+            - if:
+                condition:
+                  lambda: return id(heat_cool);
+                then:
+                  - if:
+                      condition:
+                        lambda: return id(Auto);
+                      then:
+                        - if:
+                            condition:
+                              lambda: return id(dry);
+                            then:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷"
+                                          - "制冷/制热"
+                                          - "自动"
+                                          - "除湿"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷"
+                                          - "制冷/制热"
+                                          - "自动"
+                                          - "除湿"
+                            else:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷"
+                                          - "制冷/制热"
+                                          - "自动"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷"
+                                          - "制冷/制热"
+                                          - "自动"
+                      else:
+                        - if:
+                            condition:
+                              lambda: return id(dry);
+                            then:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷"
+                                          - "制冷/制热"
+                                          - "除湿"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷"
+                                          - "制冷/制热"
+                                          - "除湿"
+                            else:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷"
+                                          - "制冷/制热"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷"
+                                          - "制冷/制热"
+                else:
+                  - if:
+                      condition:
+                        lambda: return id(Auto);
+                      then:
+                        - if:
+                            condition:
+                              lambda: return id(dry);
+                            then:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷"
+                                          - "自动"
+                                          - "除湿"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷"
+                                          - "自动"
+                                          - "除湿"
+                            else:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷"
+                                          - "自动"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷"
+                                          - "自动"
+                      else:
+                        - if:
+                            condition:
+                              lambda: return id(dry);
+                            then:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷"
+                                          - "除湿"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷"
+                                          - "除湿"
+                            else:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷"
+          else:
+            - if:
+                condition:
+                  lambda: return id(heat_cool);
+                then:
+                  - if:
+                      condition:
+                        lambda: return id(Auto);
+                      then:
+                        - if:
+                            condition:
+                              lambda: return id(dry);
+                            then:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷/制热"
+                                          - "自动"
+                                          - "除湿"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷/制热"
+                                          - "自动"
+                                          - "除湿"
+                            else:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷/制热"
+                                          - "自动"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷/制热"
+                                          - "自动"
+                      else:
+                        - if:
+                            condition:
+                              lambda: return id(dry);
+                            then:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷/制热"
+                                          - "除湿"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷/制热"
+                                          - "除湿"
+                            else:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷/制热"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "制冷/制热"
+                else:
+                  - if:
+                      condition:
+                        lambda: return id(Auto);
+                      then:
+                        - if:
+                            condition:
+                              lambda: return id(dry);
+                            then:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "自动"
+                                          - "除湿"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "自动"
+                                          - "除湿"
+                            else:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "自动"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "自动"
+                      else:
+                        - if:
+                            condition:
+                              lambda: return id(dry);
+                            then:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "除湿"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "除湿"
+                            else:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制热"
+    else:
+      - if:
+          condition:
+            lambda: return id(cool);
+          then:
+            - if:
+                condition:
+                  lambda: return id(heat_cool);
+                then:
+                  - if:
+                      condition:
+                        lambda: return id(Auto);
+                      then:
+                        - if:
+                            condition:
+                              lambda: return id(dry);
+                            then:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷"
+                                          - "制冷/制热"
+                                          - "自动"
+                                          - "除湿"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷"
+                                          - "制冷/制热"
+                                          - "自动"
+                                          - "除湿"
+                            else:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷"
+                                          - "制冷/制热"
+                                          - "自动"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷"
+                                          - "制冷/制热"
+                                          - "自动"
+                      else:
+                        - if:
+                            condition:
+                              lambda: return id(dry);
+                            then:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷"
+                                          - "制冷/制热"
+                                          - "除湿"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷"
+                                          - "制冷/制热"
+                                          - "除湿"
+                            else:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷"
+                                          - "制冷/制热"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷"
+                                          - "制冷/制热"
+                else:
+                  - if:
+                      condition:
+                        lambda: return id(Auto);
+                      then:
+                        - if:
+                            condition:
+                              lambda: return id(dry);
+                            then:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷"
+                                          - "自动"
+                                          - "除湿"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷"
+                                          - "自动"
+                                          - "除湿"
+                            else:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷"
+                                          - "自动"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷"
+                                          - "自动"
+                      else:
+                        - if:
+                            condition:
+                              lambda: return id(dry);
+                            then:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷"
+                                          - "除湿"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷"
+                                          - "除湿"
+                            else:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷"
+          else:
+            - if:
+                condition:
+                  lambda: return id(heat_cool);
+                then:
+                  - if:
+                      condition:
+                        lambda: return id(Auto);
+                      then:
+                        - if:
+                            condition:
+                              lambda: return id(dry);
+                            then:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷/制热"
+                                          - "自动"
+                                          - "除湿"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷/制热"
+                                          - "自动"
+                                          - "除湿"
+                            else:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷/制热"
+                                          - "自动"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷/制热"
+                                          - "自动"
+                      else:
+                        - if:
+                            condition:
+                              lambda: return id(dry);
+                            then:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷/制热"
+                                          - "除湿"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷/制热"
+                                          - "除湿"
+                            else:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷/制热"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "制冷/制热"
+                else:
+                  - if:
+                      condition:
+                        lambda: return id(Auto);
+                      then:
+                        - if:
+                            condition:
+                              lambda: return id(dry);
+                            then:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "自动"
+                                          - "除湿"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "自动"
+                                          - "除湿"
+                            else:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "自动"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "自动"
+                      else:
+                        - if:
+                            condition:
+                              lambda: return id(dry);
+                            then:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "除湿"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "除湿"
+                            else:
+                              - if:
+                                  condition:
+                                    lambda: return id(fan_only);
+                                  then:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"
+                                          - "送风"
+                                  else:
+                                    - lvgl.roller.update:
+                                        id: hvac_mode_roller
+                                        options:
+                                          - "关闭"

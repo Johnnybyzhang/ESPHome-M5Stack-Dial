@@ -1,0 +1,64 @@
+# The following lambda function extracts the HVAC modes from the raw string, capitalizes them, and joins them into a single string
+- lambda: |-
+    std::string input = x.c_str(); // The raw input string
+    std::vector<std::string> hvac_modes; // Vector to store the extracted modes
+    auto uncapitalize = [](std::string &str) {
+      if (!str.empty()) {
+        for (size_t i = 0; i < str.size(); ++i) {
+          str[i] = std::tolower(static_cast<unsigned char>(str[i]));
+        }
+      }
+    };
+    if (input.size() >= 2 && input.front() == '[' && input.back() == ']') {
+      input = input.substr(1, input.size() - 2);
+    } // Remove the brackets if present
+    size_t pos = 0;
+    while (pos < input.length()) {
+      // Find the start of "<HVACMode."
+      size_t start = input.find("<HVACMode.", pos);
+      if (start == std::string::npos) {
+        break; // No more modes found
+      }
+      start += strlen("<HVACMode."); // Move past "<HVACMode."
+      size_t colon = input.find(":", start); // Find the position of the colon ":" after the mode name
+      if (colon == std::string::npos) {
+        break; // Malformed string
+      }
+      std::string mode = input.substr(start, colon - start); // Extract the mode name
+      uncapitalize(mode); // Convert to "off", "heat", etc.
+      hvac_modes.push_back(mode); // Store the mode
+      pos = input.find(">", colon); // Move the position past the current mode entry
+      if (pos == std::string::npos) {
+        break; // End of string
+      }
+      pos += 1; // Move past ">"
+    }
+    // for each mode in the vector, set the corresponding global bool to true (if it exists)
+    for (size_t i = 0; i < hvac_modes.size(); ++i) {
+      if (hvac_modes[i] == "heat") {
+        id(heat)=true;
+      } else if (hvac_modes[i] == "cool") {
+        id(cool)=true;
+      } else if (hvac_modes[i] == "heat_cool") {
+        id(heat_cool)=true;
+      } else if (hvac_modes[i] == "auto") {
+        id(Auto)=true;
+      } else if (hvac_modes[i] == "dry") {
+        id(dry)=true;
+      } else if (hvac_modes[i] == "fan_only") {
+        id(fan_only)=true;
+      }
+    }
+    // Join the modes into a single comma-separated string for display
+    if (hvac_modes.empty()) {
+      return std::string("No modes found");
+    } else {
+      std::string joined;
+      for (size_t i = 0; i < hvac_modes.size(); ++i) {
+        if (i > 0) {
+          joined += ", ";
+        }
+        joined += hvac_modes[i];
+      }
+      return joined;
+    }
