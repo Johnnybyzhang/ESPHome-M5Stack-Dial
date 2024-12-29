@@ -76,6 +76,19 @@ captive_portal:
 web_server:
   port: 80
 
+font:
+  - file: "Fonts/PingFangSC-Medium.ttf"
+    id: temperature_label
+    size: 48
+    glyphs: "0123456789.…关闭"
+    bpp: 8
+  - file: "Fonts/PingFangSC-Regular.ttf"
+    id: state_label
+    size: 20
+    bpp: 8
+    glyphs: " 升降温至当前湿度℃°关闭制热冷自动"
+
+
 #######################################################
 # M5Stack M5 Dial Configuration (Hardware Side)
 
@@ -243,9 +256,70 @@ interval:
 
 text_sensor:
   - platform: homeassistant
+    name: "Parsed HVAC Modes"
     id: climate_mode
+    internal: false
     entity_id: climate.tado_smart_radiator_thermostat_va2105674240
-    attribute: hvac_mode
+    attribute: hvac_modes
+    filters:
+    # The following lambda function extracts the HVAC modes from the raw string, capitalizes them, and joins them into a single string
+      - lambda: |-
+          std::string input = x.c_str(); // The raw input string
+          std::vector<std::string> hvac_modes; // Vector to store the extracted modes
+          auto capitalize = [](std::string &str) {
+            if (!str.empty()) {
+              str[0] = std::toupper(static_cast<unsigned char>(str[0]));
+              for (size_t i = 1; i < str.size(); ++i) {
+                str[i] = std::tolower(static_cast<unsigned char>(str[i]));
+              }
+            }
+          };
+          if (input.size() >= 2 && input.front() == '[' && input.back() == ']') {
+            input = input.substr(1, input.size() - 2);
+          } // Remove the brackets if present
+          size_t pos = 0;
+          while (pos < input.length()) {
+            // Find the start of "<HVACMode."
+            size_t start = input.find("<HVACMode.", pos);
+            if (start == std::string::npos) {
+              break; // No more modes found
+            }
+            start += strlen("<HVACMode."); // Move past "<HVACMode."
+            size_t colon = input.find(":", start); // Find the position of the colon ":" after the mode name
+            if (colon == std::string::npos) {
+              break; // Malformed string
+            }
+            std::string mode = input.substr(start, colon - start); // Extract the mode name
+            capitalize(mode); // Convert to "Off", "Heat", etc.
+            hvac_modes.push_back(mode); // Store the mode
+            pos = input.find(">", colon); // Move the position past the current mode entry
+            if (pos == std::string::npos) {
+              break; // End of string
+            }
+            pos += 1; // Move past ">"
+          }
+          // Join the modes into a single comma-separated string for display
+          if (hvac_modes.empty()) {
+            return std::string("No modes found");
+          } else {
+            std::string joined;
+            for (size_t i = 0; i < hvac_modes.size(); ++i) {
+              if (i > 0) {
+                joined += ", ";
+              }
+              joined += hvac_modes[i];
+            }
+            return joined;
+          }
+
+          // If you need to use the vector `hvac_modes` elsewhere, you can process it here
+          // For example, logging the modes
+          /*
+          for (const auto &mode : hvac_modes) {
+            ESP_LOGD("HVACMode", "Mode: %s", mode.c_str());
+          }
+          return std::string("Modes processed");
+          */
 
 
 binary_sensor:
@@ -299,6 +373,7 @@ lvgl:
 # M5Stack M5 Dial Configuration (Software Side)
   pages:
     - id: thermostat_page
+      bg_color: 0xA0A0A0
       widgets:
         - arc:
             id: arc_thermostat
@@ -308,6 +383,7 @@ lvgl:
             height: 240
             adjustable: true
             arc_rounded: true
+            arc_color: 0x737373
             pad_all: 3
             bg_opa: TRANSP
             rotation: 90
@@ -340,7 +416,7 @@ lvgl:
               - lvgl.label.update:
                   id: thermostat_set_temperature
                   text: 
-                    format: "%.1f°C"
+                    format: "%.1f"
                     args: [x/2]
               - lvgl.widget.focus:
                   id: arc_thermostat
@@ -350,12 +426,20 @@ lvgl:
               - label:
                   id: thermostat_set_temperature
                   text: "..."
-                  y: -10
+                  y: -5
                   # text: !lambda |-
                   #   return std::to_string(id(climate_target_temperature).state);
-                  text_font: montserrat_40
+                  text_font: temperature_label
                   align: center
-                  text_color: 0x000000
+                  text_color: 0xFFFFFF
+                  overflow_visible: true
+                  widgets:
+                    - label:
+                        text: " "
+                        text_font: state_label
+                        text_color: 0xDDDDDD
+                        y: -20
+                        align: TOP_MID
               - arc:
                   id: arc_room_temperature
                   x: 0
@@ -378,7 +462,7 @@ lvgl:
                   indicator:
                     arc_opa: TRANSP
                   knob:
-                    bg_color: 0xFFFFFF
+                    bg_color: 0xE0E0E0
                     bg_opa: COVER
                     pad_all: -2
       on_load:
