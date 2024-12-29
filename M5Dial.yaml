@@ -4,14 +4,51 @@ esphome:
     - switch.turn_on: hold
     - pcf8563.read_time:
         id: pcf8563_time
+    - if:
+        condition:
+          light.is_off: backlight
+        then:
+          - lvgl.pause:
+    - lambda: |-
+        // Set LED to Blue during boot
+        id(status_led).turn_on().set_rgb(0, 0, 1).perform();
+    - delay: 2s
+    - lambda: |-
+        // After boot, let the interval handle the status
 
 esp32:
-  board: m5stack-stamps3
+  board: esp32-s3-devkitc-1
   framework:
     type: esp-idf
+  flash_size: 8MB
 
 # Enable logging
 logger:
+  level: DEBUG
+  logs:
+    logger: ERROR
+    light: ERROR
+    lvgl: DEBUG
+    sensor: ERROR
+    binary_sensor: ERROR
+    homeassistant: INFO
+    esp32_rmt_led_strip: ERROR
+    rc522_i2c: ERROR
+    spi: ERROR
+    display: ERROR
+    touch: ERROR
+    i2c: ERROR
+    time: ERROR
+    rotary_encoder: ERROR
+    wifi: ERROR
+    web_server: ERROR
+    api: ERROR
+    ota: ERROR
+    switch: ERROR
+    output: ERROR
+    number: ERROR
+    interval: ERROR
+    text_sensor: ERROR
 
 # Enable Home Assistant API
 api:
@@ -65,6 +102,8 @@ output:
     frequency: "78125Hz" # Reference: ESPHome Official Documentation
     channel: 0
     id: backlight_pwm
+    max_power: 1
+    min_power: 0.01
   - platform: ledc
     pin: GPIO3
     id: buzzer_pwm
@@ -76,9 +115,20 @@ switch:
 
 light:
   - platform: monochromatic
+    name: "M5 Dial Backlight"
     output: backlight_pwm
     id: backlight
-    restore_mode: ALWAYS_ON
+    restore_mode: RESTORE_DEFAULT_ON
+    default_transition_length: 250ms
+  - platform: esp32_rmt_led_strip
+    name: "M5 Stamp LED"
+    internal: True
+    id: status_led
+    rgb_order: GRB
+    pin: GPIO21
+    num_leds: 1
+    rmt_channel: 1
+    chipset: ws2812
 
 # I2C Stuff
 i2c:
@@ -128,11 +178,17 @@ sensor:
   - platform: rotary_encoder # Rotary Encoder
     pin_a: GPIO40
     pin_b: GPIO41
+    publish_initial_value: True
     id: encoder_main
+    restore_mode: ALWAYS_ZERO
   - platform: homeassistant
     id: climate_current_temperature
     entity_id: climate.tado_smart_radiator_thermostat_va2105674240
     attribute: current_temperature
+    on_value:
+      - lvgl.arc.update:
+          id: arc_room_temperature
+          value: !lambda return x*10;
   - platform: homeassistant
     id: climate_target_temperature
     entity_id: climate.tado_smart_radiator_thermostat_va2105674240
@@ -153,6 +209,9 @@ sensor:
             - lvgl.arc.update:
                 id: arc_thermostat
                 value: !lambda return x*2;
+  - platform: wifi_signal
+    id: wifi_signal_sensor
+    update_interval: 5s
 
 number:
   - platform: template
@@ -165,6 +224,22 @@ number:
     max_value: 1800
     step: 5
     mode: box
+
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          // Example: Set different colors based on WiFi connectivity
+          if (id(wifi_signal_sensor).state > -70) {
+            // Good signal: Green
+            id(status_led).turn_on().set_rgb(0, 1, 0).perform();
+          } else if (id(wifi_signal_sensor).state > -80) {
+            // Fair signal: Yellow
+            id(status_led).turn_on().set_rgb(1, 1, 0).perform();
+          } else {
+            // Poor signal: Red
+            id(status_led).turn_on().set_rgb(1, 0, 0).perform();
+          }
 
 text_sensor:
   - platform: homeassistant
@@ -193,6 +268,10 @@ binary_sensor:
       - binary_sensor.template.publish:
           id: need_catchup
           state: false
+      - lvgl.widget.focus:
+          id: arc_thermostat
+          freeze: true
+          editing: true
   - platform: template
     id: need_catchup
   - platform: template
@@ -215,6 +294,7 @@ lvgl:
     - enter_button: button_main
       sensor: encoder_main
   buffer_size: 25%
+  log_level: DEBUG
 #######################################################
 # M5Stack M5 Dial Configuration (Software Side)
   pages:
@@ -228,14 +308,21 @@ lvgl:
             height: 240
             adjustable: true
             arc_rounded: true
-            pad_all: 8
+            pad_all: 3
             bg_opa: TRANSP
             rotation: 90
-            start_angle: 45
-            end_angle: 315
+            start_angle: 60
+            end_angle: 300
             min_value: 10
             max_value: 50
             adv_hittest: true
+            arc_width: 32
+            indicator:
+              arc_width: 32
+            knob:
+              bg_color: 0xFFFFFF
+              bg_opa: COVER
+              pad_all: -4
             on_change: # Knob Actuated
               - homeassistant.action:
                   action: climate.set_temperature
@@ -245,38 +332,60 @@ lvgl:
               - binary_sensor.template.publish:
                   id: need_catchup
                   state: true
+              - lvgl.widget.focus:
+                  id: arc_thermostat
+                  freeze: true
+                  editing: true
             on_value: # Localized Temperature Display
               - lvgl.label.update:
                   id: thermostat_set_temperature
                   text: 
                     format: "%.1f°C"
                     args: [x/2]
+              - lvgl.widget.focus:
+                  id: arc_thermostat
+                  freeze: true
+                  editing: true
             widgets:
               - label:
                   id: thermostat_set_temperature
                   text: "..."
+                  y: -10
                   # text: !lambda |-
                   #   return std::to_string(id(climate_target_temperature).state);
-                  text_font: montserrat_48
+                  text_font: montserrat_40
                   align: center
                   text_color: 0x000000
-              # - arc:
-              #     id: arc_room_temperature
-              #     x: 0
-              #     y: 0
-              #     width: 240
-              #     height: 240
-              #     adjustable: false
-              #     start_angle: 45
-              #     end_angle: 315
-              #     bg_opa: TRANSP
-              #     outline_opa: TRANSP
-              #     arc_opa: TRANSP
-              #     arc_rounded: true
-              #     pad_all: 8
-              #     rotation: 90
-              #     min_value: 50
-              #     max_value: 250
+              - arc:
+                  id: arc_room_temperature
+                  x: 0
+                  y: 0
+                  width: 240
+                  height: 240
+                  adjustable: true
+                  clickable: false
+                  click_focusable: false
+                  start_angle: 60
+                  end_angle: 300
+                  align: center
+                  # outline_opa: TRANSP
+                  arc_opa: TRANSP
+                  arc_rounded: true
+                  pad_all: 13
+                  rotation: 90
+                  min_value: 50
+                  max_value: 250
+                  indicator:
+                    arc_opa: TRANSP
+                  knob:
+                    bg_color: 0xFFFFFF
+                    bg_opa: COVER
+                    pad_all: -2
+      on_load:
+        - lvgl.widget.focus:
+            id: arc_thermostat
+            freeze: true
+            editing: true
   on_idle:
     timeout: !lambda |-
       return (id(display_timeout).state * 1000);
@@ -288,4 +397,7 @@ lvgl:
     then:
       - logger.log: "LVGL is resumed"
       - lvgl.widget.redraw:
+      - sensor.rotary_encoder.set_value:
+          id: encoder_main
+          value: 0 # Reset the encoder value after waking
       - light.turn_on: backlight
