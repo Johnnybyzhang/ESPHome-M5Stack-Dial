@@ -274,6 +274,20 @@ text_sensor:
     id: climate_mode_current
     internal: false
     entity_id: climate.tado_smart_radiator_thermostat_va2105674240
+    filters:
+      - map:
+          - off -> 关闭
+          - heat -> 制热
+          - cool -> 制冷
+          - heat_cool -> 制热/制冷
+          - auto -> 自动
+          - dry -> 除湿
+          - fan_only -> 送风
+    on_value:
+      - delay: 500ms
+      - lvgl.roller.update:
+          id: hvac_mode_roller
+          selected_text: !lambda return x;
 globals: !include globals.yaml
 
 binary_sensor: !include binary_sensor.yaml

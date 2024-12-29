@@ -53,3 +53,25 @@
     adv_hittest: true
     options: 
       - "关闭"
+    on_change:
+      - homeassistant.action:
+          action: climate.set_hvac_mode
+          data:
+            entity_id: climate.tado_smart_radiator_thermostat_va2105674240
+            hvac_mode: !lambda |-
+              //need to use if-else to convert the text to the corresponding hvac mode instead
+              if (text == "关闭") {
+                return "off";
+              } else if (text == "制热") {
+                return "heat";
+              } else if (text == "制冷") {
+                return "cool";
+              } else if (text == "制热/制冷") {
+                return "heat_cool";
+              } else if (text == "自动") {
+                return "auto";
+              } else if (text == "除湿") {
+                return "dry";
+              } else if (text == "送风") {
+                return "fan_only";
+              }
