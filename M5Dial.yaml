@@ -40,8 +40,8 @@ ota:
 
 wifi:
   networks:
-  - ssid: "IoT"
-    password: "QAZwsxEDC@123"
+  - ssid: !secret wifi_ng_ssid
+    password: !secret wifi_ng_password
     hidden: True
   fast_connect: True
   # Enable fallback hotspot (captive portal) in case wifi connection fails
