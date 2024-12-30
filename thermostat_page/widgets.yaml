@@ -26,7 +26,7 @@
       - homeassistant.action:
           action: climate.set_temperature
           data:
-            entity_id: climate.tado_smart_radiator_thermostat_va2105674240
+            entity_id: "${target_climate}"
             temperature: !lambda return x/2;
       - binary_sensor.template.publish:
           id: need_catchup
@@ -62,7 +62,7 @@
       - homeassistant.action:
           action: climate.set_hvac_mode
           data:
-            entity_id: climate.tado_smart_radiator_thermostat_va2105674240
+            entity_id: "${target_climate}"
             hvac_mode: !lambda |-
               //need to use if-else to convert the text to the corresponding hvac mode instead
               if (text == "关闭") {
@@ -79,7 +79,7 @@
                 return "dry";
               } else if (text == "送风") {
                 return "fan_only";
-              }
+              } else return "None";
     on_value:  
       - if:
           condition:
@@ -99,3 +99,14 @@
             - lambda: id(is_off) = false;
             - lvgl.widget.enable:
                 id: arc_thermostat
+            - if:
+                condition:
+                  lambda: return !id(startup);
+                then:
+                  - binary_sensor.template.publish:
+                      id: have_update
+                      state: true
+                  - delay: 5ms
+                  - binary_sensor.template.publish:
+                      id: have_update
+                      state: false

@@ -1,3 +1,6 @@
+substitutions:
+  target_climate: "climate.tado_smart_radiator_thermostat_va2105674240"
+
 esphome:
   name: m5-dial
   on_boot:
@@ -205,7 +208,7 @@ sensor:
     update_interval: 5s
   - platform: homeassistant
     id: climate_current_temperature
-    entity_id: climate.tado_smart_radiator_thermostat_va2105674240
+    entity_id: "${target_climate}"
     attribute: current_temperature
     on_value:
       - lvgl.arc.update:
@@ -213,7 +216,7 @@ sensor:
           value: !lambda return x*10;
   - platform: homeassistant
     id: climate_target_temperature
-    entity_id: climate.tado_smart_radiator_thermostat_va2105674240
+    entity_id: "${target_climate}"
     attribute: temperature
     on_value:
       - if:
@@ -269,7 +272,7 @@ text_sensor:
     name: "Parsed HVAC Modes"
     id: climate_mode
     internal: false
-    entity_id: climate.tado_smart_radiator_thermostat_va2105674240
+    entity_id: "${target_climate}"
     attribute: hvac_modes
     filters: !include parser.yaml
     on_value: !include workaround.yaml
@@ -277,7 +280,7 @@ text_sensor:
     name: "Current HVAC Mode"
     id: climate_mode_current
     internal: false
-    entity_id: climate.tado_smart_radiator_thermostat_va2105674240
+    entity_id: "${target_climate}"
     filters:
       - map:
           - off -> 关闭
