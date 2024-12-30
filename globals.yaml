@@ -31,3 +31,7 @@
   type: bool
   initial_value: "true"
   restore_value: false
+- id: was_idle
+  type: bool
+  initial_value: "false"
+  restore_value: true

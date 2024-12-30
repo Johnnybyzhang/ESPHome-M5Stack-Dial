@@ -14,7 +14,7 @@
         then:
           - lvgl.arc.update:
               id: arc_thermostat
-              value: !lambda return (id(climate_target_temperature).state*2);
+              value: !lambda return (id(climate_target_temperature).state*10);
           - binary_sensor.template.publish:
               id: need_catchup
               state: false

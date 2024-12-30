@@ -12,8 +12,8 @@
     rotation: 90
     start_angle: 60
     end_angle: 300
-    min_value: 10
-    max_value: 50
+    min_value: 50
+    max_value: 250
     adv_hittest: true
     arc_width: 32
     indicator:
@@ -27,7 +27,7 @@
           action: climate.set_temperature
           data:
             entity_id: "${target_climate}"
-            temperature: !lambda return x/2;
+            temperature: !lambda return x/10;
       - binary_sensor.template.publish:
           id: need_catchup
           state: true
@@ -40,7 +40,7 @@
           id: thermostat_set_temperature
           text: 
             format: "%.1f"
-            args: [x/2]
+            args: [x/10]
       - lvgl.widget.focus:
           id: arc_thermostat
           freeze: true
@@ -48,14 +48,22 @@
     widgets: !include subwidgets.yaml
 - roller:
     id: hvac_mode_roller
-    x: 85
+    x: 75
     y: 150
     mode: NORMAL
     visible_row_count: 2
-    width: 70
+    width: 90
     height: 16
+    pad_all: 0
+    bg_opa: TRANSP
+    border_opa: TRANSP
+    text_color: 0xFFFFFF
     text_font: state_label_small
     adv_hittest: true
+    selected:
+      bg_color: 0x909090
+      radius: 5
+      text_color: 0xFFFFFF
     options: 
       - "关闭"
     on_change:

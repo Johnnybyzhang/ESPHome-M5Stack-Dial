@@ -9,7 +9,7 @@ esphome:
         id: pcf8563_time
     - if:
         condition:
-          light.is_off: backlight
+          lambda: return id(was_idle);
         then:
           - lvgl.pause:
     - lambda: |-
@@ -27,31 +27,7 @@ esp32:
 
 # Enable logging
 logger:
-  level: DEBUG
-  logs:
-    logger: ERROR
-    light: ERROR
-    lvgl: DEBUG
-    sensor: ERROR
-    binary_sensor: ERROR
-    homeassistant: INFO
-    esp32_rmt_led_strip: ERROR
-    rc522_i2c: ERROR
-    spi: ERROR
-    display: ERROR
-    touch: ERROR
-    i2c: ERROR
-    time: ERROR
-    rotary_encoder: ERROR
-    wifi: ERROR
-    web_server: ERROR
-    api: ERROR
-    ota: ERROR
-    switch: ERROR
-    output: ERROR
-    number: ERROR
-    interval: ERROR
-    text_sensor: ERROR
+  level: ERROR
 
 # Enable Home Assistant API
 api:
@@ -237,7 +213,7 @@ sensor:
                 then:
                   - lvgl.arc.update:
                       id: arc_thermostat
-                      value: !lambda return x*2;
+                      value: !lambda return x*10;
 
 number:
   - platform: template
@@ -333,6 +309,7 @@ lvgl:
       - logger.log: "LVGL is idle"
       - light.turn_off: backlight
       - lvgl.pause:
+      - lambda: id(was_idle) = true;
   on_resume:
     then:
       - logger.log: "LVGL is resumed"
@@ -340,4 +317,17 @@ lvgl:
       - sensor.rotary_encoder.set_value:
           id: encoder_main
           value: 0 # Reset the encoder value after waking
-      - light.turn_on: backlight
+      - if:
+          condition:
+            lambda: return id(startup);
+          then:
+            - if:
+                condition:
+                  lambda: return !id(was_idle);
+                then:
+                  - light.turn_on: backlight
+                else:
+                  - lvgl.pause:
+          else:
+            - lambda: id(was_idle) = false;
+            - light.turn_on: backlight
