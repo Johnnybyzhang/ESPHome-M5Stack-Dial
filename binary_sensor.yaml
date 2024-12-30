@@ -8,12 +8,16 @@
   filters:
     - settle: 1000ms
   on_release:
-    - lvgl.arc.update:
-        id: arc_thermostat
-        value: !lambda return (id(climate_target_temperature).state*2);
-    - binary_sensor.template.publish:
-        id: need_catchup
-        state: false
+    - if:
+        condition:
+          lambda: return !id(is_off);
+        then:
+          - lvgl.arc.update:
+              id: arc_thermostat
+              value: !lambda return (id(climate_target_temperature).state*2);
+          - binary_sensor.template.publish:
+              id: need_catchup
+              state: false
     - lvgl.widget.focus:
         id: arc_thermostat
         freeze: true

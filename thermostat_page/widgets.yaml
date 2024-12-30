@@ -46,3 +46,56 @@
           freeze: true
           editing: true
     widgets: !include subwidgets.yaml
+- roller:
+    id: hvac_mode_roller
+    x: 85
+    y: 150
+    mode: NORMAL
+    visible_row_count: 2
+    width: 70
+    height: 16
+    text_font: state_label_small
+    adv_hittest: true
+    options: 
+      - "关闭"
+    on_change:
+      - homeassistant.action:
+          action: climate.set_hvac_mode
+          data:
+            entity_id: climate.tado_smart_radiator_thermostat_va2105674240
+            hvac_mode: !lambda |-
+              //need to use if-else to convert the text to the corresponding hvac mode instead
+              if (text == "关闭") {
+                return "off";
+              } else if (text == "制热") {
+                return "heat";
+              } else if (text == "制冷") {
+                return "cool";
+              } else if (text == "制热/制冷") {
+                return "heat_cool";
+              } else if (text == "自动") {
+                return "auto";
+              } else if (text == "除湿") {
+                return "dry";
+              } else if (text == "送风") {
+                return "fan_only";
+              }
+    on_value:  
+      - if:
+          condition:
+            lambda: return text=="关闭";
+          then:
+            - lambda: id(is_off) = true;
+            - lvgl.label.update:
+                id: thermostat_set_temperature
+                text: "关闭"
+            - if:
+                condition:
+                  lambda: return !id(startup);
+                then:
+                  - lvgl.widget.disable:
+                      id: arc_thermostat
+          else:
+            - lambda: id(is_off) = false;
+            - lvgl.widget.enable:
+                id: arc_thermostat

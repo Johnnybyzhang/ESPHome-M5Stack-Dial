@@ -23,3 +23,11 @@
   type: bool
   initial_value: "false"
   restore_value: false
+- id: startup
+  type: bool
+  initial_value: "true"
+  restore_value: false
+- id: is_off
+  type: bool
+  initial_value: "true"
+  restore_value: false
